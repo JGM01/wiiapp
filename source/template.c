@@ -6,9 +6,7 @@
 static void *xfb = NULL;
 static GXRModeObj *rmode = NULL;
 
-//---------------------------------------------------------------------------------
-int main(int argc, char **argv) {
-//---------------------------------------------------------------------------------
+void initializeVideoConfig() {
 
 	// Initialise the video system
 	VIDEO_Init();
@@ -42,28 +40,36 @@ int main(int argc, char **argv) {
 	// Wait for Video setup to complete
 	VIDEO_WaitVSync();
 	if(rmode->viTVMode&VI_NON_INTERLACE) VIDEO_WaitVSync();
+}
 
+void checkInputs() {
+    
+    // Call WPAD_ScanPads each loop, this reads the latest controller states
+    WPAD_ScanPads();
 
-	// The console understands VT terminal escape codes
-	// This positions the cursor on row 2, column 0
-	// we can use variables for this with format codes too
-	// e.g. printf ("\x1b[%d;%dH", row, column );
-	printf("\x1b[2;0H");
+    // WPAD_ButtonsDown tells us which buttons were pressed in this loop
+    // this is a "one shot" state which will not fire again until the button has been released
+    u32 pressed = WPAD_ButtonsDown(0);
+
+    // We return to the launcher application via exit
+    if ( pressed & WPAD_BUTTON_HOME ) exit(0);
+}
+
+int main(int argc, char **argv) {
+
+    initializeVideoConfig();
+
+	/*  The console understands VT terminal escape codes.
+	 *  This positions the cursor on row 2, column 0.
+	 *  we can use variables for this with format codes too
+	 *  e.g. printf ("\x1b[%d;%dH", row, column );
+	 */
+    printf("\x1b[2;0H");
 
 
 	printf("Hello Jaimee! Writing this on my laptop and displaying on the Wii!\n");
 
 	while(1) {
-
-		// Call WPAD_ScanPads each loop, this reads the latest controller states
-		WPAD_ScanPads();
-
-		// WPAD_ButtonsDown tells us which buttons were pressed in this loop
-		// this is a "one shot" state which will not fire again until the button has been released
-		u32 pressed = WPAD_ButtonsDown(0);
-
-		// We return to the launcher application via exit
-		if ( pressed & WPAD_BUTTON_HOME ) exit(0);
 
 		// Wait for the next frame
 		VIDEO_WaitVSync();
